@@ -1,0 +1,138 @@
+<svg
+        width="400"
+        height="300"
+        viewBox="0 0 400 300"
+        xmlns="http://www.w3.org/2000/svg"
+>
+
+    <!-- darker screen background -->
+    <rect
+            x="0"
+            y="0"
+            width="400"
+            height="300"
+            rx="25"
+            fill="#86d8e7"
+    />
+
+    <!-- LEFT EYE GROUP -->
+    <g id="leftEyeGroup">
+        <circle
+                id="leftEye"
+                cx="140"
+                cy="120"
+                r="40"
+                fill="white"
+        />
+        <g id="leftPupilGroup">
+            <circle
+                    id="pupilLeft"
+                    cx="140"
+                    cy="120"
+                    r="16"
+                    fill="#222"
+            />
+            <circle
+                    id="pupilHighlightLeft"
+                    cx="134"
+                    cy="114"
+                    r="5"
+                    fill="white"
+            />
+        </g>
+        <!-- left eyelid -->
+        <rect
+                id="leftLid"
+                x="100"
+                y="0"
+                width="80"
+                height="40"
+                fill="#86d8e7"
+        />
+    </g>
+
+    <!-- RIGHT EYE GROUP -->
+    <g id="rightEyeGroup">
+        <circle
+                id="rightEye"
+                cx="260"
+                cy="120"
+                r="40"
+                fill="white"
+        />
+        <g id="rightPupilGroup">
+            <circle
+                    id="pupilRight"
+                    cx="260"
+                    cy="120"
+                    r="16"
+                    fill="#222"
+            />
+            <circle
+                    id="pupilHighlightRight"
+                    cx="254"
+                    cy="114"
+                    r="5"
+                    fill="white"
+            />
+        </g>
+        <!-- right eyelid -->
+        <rect
+                id="rightLid"
+                x="220"
+                y="0"
+                width="80"
+                height="40"
+                fill="#86d8e7"
+        />
+    </g>
+
+    <!-- EYEBROWS -->
+    <path
+            id="leftBrow"
+            d="M110 70 Q140 55 170 70"
+            stroke="#222"
+            stroke-width="3"
+            fill="none"
+            stroke-linecap="round"
+    />
+
+    <path
+            id="rightBrow"
+            d="M230 70 Q260 55 290 70"
+            stroke="#222"
+            stroke-width="3"
+            fill="none"
+            stroke-linecap="round"
+    />
+
+    <!-- MOUTH (thinner) -->
+    <path
+            id="mouth"
+            d="M150 200 Q200 230 250 200"
+            stroke="#222"
+            stroke-width="5"
+            fill="none"
+            stroke-linecap="round"
+    />
+
+    <!-- CHEEKS -->
+    <circle
+            id="leftCheek"
+            cx="90"
+            cy="165"
+            r="12"
+            fill="#ff9fb0"
+            opacity="0.35"
+    />
+
+    <circle
+            id="rightCheek"
+            cx="310"
+            cy="165"
+            r="12"
+            fill="#ff9fb0"
+            opacity="0.35"
+    />
+
+</svg>
