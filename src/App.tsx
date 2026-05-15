@@ -11,38 +11,64 @@ const SVG_SCALE = CENTER_W / 400;
 const SVG_H = Math.round(225 * SVG_SCALE);
 const SVG_TOP = Math.round((TOTAL_H - SVG_H) / 2);
 
-//gippity
-const MOUTH: Record<string, string> = {
-    rest: "M 138,160 C 160,168 200,168 222,160 C 223,158 223,156 222,154 C 200,162 160,162 138,154 C 137,156 137,158 138,160 Z",
-    // "ah" — wide open
-    ah:   "M 148,145 C 162,142 198,142 212,145 C 220,153 220,164 212,172 C 198,177 162,177 148,172 C 140,164 140,153 148,145 Z",
-    // "ee" — wide thin grin
-    ee:   "M 126,150 C 152,145 208,145 234,150 C 235,153 235,155 234,158 C 208,153 152,153 126,158 C 125,155 125,153 126,150 Z",
-    // "oh" — medium oval
-    oh:   "M 158,146 C 168,143 192,143 202,146 C 210,153 210,163 202,170 C 192,175 168,175 158,170 C 150,163 150,153 158,146 Z",
-    // "oo" — small pursed circle
-    oo:   "M 165,149 C 171,146 189,146 195,149 C 200,154 200,161 195,165 C 189,169 171,169 165,165 C 160,161 160,154 165,149 Z",
-    // "mm" / "pp" / "bb" — pressed lips
-    mm:   "M 138,152 C 158,149 202,149 222,152 C 223,153 223,154 222,155 C 202,153 158,153 138,155 C 137,154 137,153 138,152 Z",
-    // "ff" / "vv" — slightly open with tension
-    ff:   "M 132,152 C 155,149 205,149 228,152 C 229,154 229,156 228,158 C 205,156 155,156 132,158 C 131,156 131,154 132,152 Z",
-    // "th" — slightly open flat
-    th:   "M 135,151 C 157,147 203,147 225,151 C 226,153 226,155 225,157 C 203,155 157,155 135,157 C 134,155 134,153 135,151 Z",
-    // "ss" / "zz" — narrow tense
-    ss:   "M 136,151 C 157,147 203,147 224,151 C 225,153 225,155 224,156 C 203,154 157,154 136,156 C 135,155 135,153 136,151 Z",
+interface MouthParams {
+    x0: number;
+    x1: number;
+    cy: number;
+    upperBow: number;
+    lowerDrop: number;
+    cornerLift: number;
+}
+
+const MOUTH: Record<string, MouthParams> = {
+    rest:  { x0: 138, x1: 222, cy: 156, upperBow: -8.2,  lowerDrop: 12,   cornerLift: 9  },
+    ah:    { x0: 142, x1: 218, cy: 157, upperBow: -12, lowerDrop: 24,  cornerLift: 0  },
+    ee:    { x0: 120, x1: 240, cy: 157, upperBow: -6,  lowerDrop: 6,   cornerLift: 4  },
+    oh:    { x0: 158, x1: 202, cy: 157, upperBow: -16, lowerDrop: 22,  cornerLift: 0  },
+    oo:    { x0: 166, x1: 194, cy: 157, upperBow: -10, lowerDrop: 14,  cornerLift: 0  },
+    ww:    { x0: 170, x1: 190, cy: 157, upperBow: -8,  lowerDrop: 12,  cornerLift: 0  },
+    mm:    { x0: 140, x1: 220, cy: 157, upperBow: -2,  lowerDrop: 2,   cornerLift: 3  },
+    ff:    { x0: 140, x1: 220, cy: 157, upperBow: -2,  lowerDrop: 10,  cornerLift: 1  },
+    th:    { x0: 140, x1: 220, cy: 157, upperBow: -4,  lowerDrop: 8,   cornerLift: 0  },
+    ss:    { x0: 136, x1: 224, cy: 157, upperBow: -3,  lowerDrop: 5,   cornerLift: 1  },
+    ch:    { x0: 160, x1: 200, cy: 157, upperBow: -12, lowerDrop: 18,  cornerLift: 0  },
+    ll:    { x0: 128, x1: 232, cy: 157, upperBow: -8,  lowerDrop: 12,  cornerLift: 2  },
 };
+
+function mouthPath(p: MouthParams): string {
+    const { x0, x1, cy, upperBow, lowerDrop, cornerLift } = p;
+    const mx = (x0 + x1) / 2;
+    const cy0 = cy - cornerLift;
+    const ux = mx;
+    const uy = cy + upperBow;
+    const ly = cy + lowerDrop;
+
+    return [
+        `M ${x0},${cy0}`,
+        `C ${x0 + (mx - x0) * 0.4},${cy0} ${ux - 10},${uy} ${ux},${uy}`,
+        `C ${ux + 10},${uy} ${x1 - (x1 - mx) * 0.4},${cy0} ${x1},${cy0}`,
+        `C ${x1 - (x1 - mx) * 0.3},${cy0 + lowerDrop * 0.5} ${ux + 12},${ly} ${ux},${ly}`,
+        `C ${ux - 12},${ly} ${x0 + (mx - x0) * 0.3},${cy0 + lowerDrop * 0.5} ${x0},${cy0}`,
+        "Z",
+    ].join(" ");
+}
 
 function charToPhon(ch: string): string {
     const c = ch.toLowerCase();
-    if (c === "a") return "ah";
-    if (c === "e" || c === "i") return "ee";
-    if (c === "o") return "oh";
-    if (c === "u") return "oo";
-    if ("mbp".includes(c)) return "mm";
-    if ("fv".includes(c))  return "ff";
-    if (c === "s" || c === "z") return "ss";
-    if (c === "t" || c === "d" || c === "h") return "th";
-    if (" \t\n".includes(c)) return "rest";
+    if (c === "a")                         return "ah";
+    if (c === "e" || c === "i")            return "ee";
+    if (c === "o")                         return "oh";
+    if (c === "u")                         return "oo";
+    if ("mbp".includes(c))                 return "mm";
+    if ("fv".includes(c))                  return "ff";
+    if (c === "t" || c === "d")            return "th";
+    if (c === "s" || c === "z")            return "ss";
+    if (c === "c" || c === "j" || c === "q") return "ch";
+    if (c === "l" || c === "r")            return "ll";
+    if (c === "w" || c === "y")            return "ww";
+    if ("kgxh".includes(c))               return "ah";
+    if (c === "n")                         return "mm";
+    if (" \t\n".includes(c))              return "rest";
     return "mm";
 }
 
@@ -63,14 +89,42 @@ function FaceButton({ x, w = 72, label, active, onClick }: {
     );
 }
 
+// ---- WebSocket message types ----
+interface BotMessage {
+    type: "speak" | "emotion" | "beep" | "state";
+    text?: string;
+    emotion?: string;
+    state?: string;
+    timestamp?: number;
+}
+
 type AnimName = "neutral" | "speak" | "surprised";
 
 export default function App() {
-    const svgRef        = useRef<SVGSVGElement>(null);
+    const svgRef         = useRef<SVGSVGElement>(null);
     const [activeAnim, setActiveAnim] = useState<AnimName>("neutral");
     const [speakText, setSpeakText]   = useState("");
+    const [connected, setConnected]   = useState(false);
+    const [botState, setBotState]     = useState("idle");
     const idleKilledRef  = useRef(false);
     const speakTlRef     = useRef<gsap.core.Timeline | null>(null);
+    const mouthParamsRef = useRef<MouthParams>({ ...MOUTH.rest });
+    const wsRef                = useRef<WebSocket | null>(null);
+    const handleBotMessageRef  = useRef<(data: BotMessage) => void>(() => {});
+
+    // ---- Mouth tween helper ----
+    const tweenMouth = useCallback((target: MouthParams, duration: number, ease = "power1.inOut") => {
+        const el = document.getElementById("mouth");
+        if (!el) return;
+        gsap.to(mouthParamsRef.current, {
+            ...target,
+            duration,
+            ease,
+            onUpdate() {
+                el.setAttribute("d", mouthPath(mouthParamsRef.current));
+            },
+        });
+    }, []);
 
     const killIdle = useCallback(() => { idleKilledRef.current = true; }, []);
 
@@ -80,38 +134,37 @@ export default function App() {
         gsap.to(["#pupilLeft", "#pupilRight"], { attr: { rx: 12, ry: 18 }, duration: d, ease: "power2.out" });
         gsap.to("#browLeft",  { attr: { d: "M100 46 Q120 31 140 46" }, duration: d, ease: "power2.out" });
         gsap.to("#browRight", { attr: { d: "M220 46 Q240 31 260 46" }, duration: d, ease: "power2.out" });
-        gsap.to("#mouth",     { attr: { d: MOUTH.rest },               duration: d, ease: "power2.out" });
+        tweenMouth(MOUTH.rest, instant ? 0 : 0.4, "power2.out");
         gsap.to("#faceGroup", { x: 0, y: 0, duration: d });
-    }, []);
+    }, [tweenMouth]);
 
     const playSurprised = useCallback(() => {
         killIdle();
         gsap.timeline()
-            .to(["#pupilLeft","#pupilRight"], { attr: { ry: 26, rx: 17 }, duration: 0.3, ease: "elastic.out(1,0.4)" })
-            .to("#browLeft",  { attr: { d: "M100 26 Q120 12 140 26" }, duration: 0.35, ease: "power3.out" }, "<")
-            .to("#browRight", { attr: { d: "M220 26 Q240 12 260 26" }, duration: 0.35, ease: "power3.out" }, "<")
-            .to("#mouth",     { attr: { d: MOUTH.oh },                 duration: 0.35, ease: "power3.out" }, "<")
-            .to("#faceGroup", { y: -6,  duration: 0.12, ease: "power2.out" }, "<")
+            .call(() => tweenMouth(MOUTH.oh, 0.24, "power3.out"))
+            .to(["#pupilLeft","#pupilRight"], { attr: { ry: 12, rx: 18 }, duration: 0.3, ease: "elastic.out(1,0.4)" }, 0)
+            .to("#browLeft",  { attr: { d: "M100 36 Q120 22 140 36" }, duration: 0.35, ease: "power3.out" }, 0)
+            .to("#browRight", { attr: { d: "M220 36 Q240 22 260 36" }, duration: 0.35, ease: "power3.out" }, 0)
+            .to("#faceGroup", { y: -6,  duration: 0.12, ease: "power2.out" }, 0)
             .to("#faceGroup", { y: 0,   duration: 0.4,  ease: "bounce.out" })
-            .to({}, { duration: 1.2 })
+            .to({}, { duration: 0.88 })
             .to(["#pupilLeft","#pupilRight"], { attr: { ry: 18, rx: 12 }, duration: 0.6, ease: "power2.inOut" })
             .to("#browLeft",  { attr: { d: "M100 46 Q120 31 140 46" }, duration: 0.6, ease: "power2.out" }, "<")
             .to("#browRight", { attr: { d: "M220 46 Q240 31 260 46" }, duration: 0.6, ease: "power2.out" }, "<")
-            .to("#mouth",     { attr: { d: MOUTH.rest },               duration: 0.6, ease: "power2.out" }, "<");
-    }, [killIdle]);
+            .call(() => tweenMouth(MOUTH.rest, 0.6, "power2.out"));
+    }, [killIdle, tweenMouth]);
 
     const playSpeak = useCallback((text: string) => {
         if (!text.trim()) return;
         killIdle();
         if (speakTlRef.current) speakTlRef.current.kill();
 
-        const PER_CHAR = 0.08;
+        const PER_CHAR = 0.11;
         const BLEND    = 0.08;
 
         const tl = gsap.timeline({
             onComplete: () => {
-                gsap.to("#mouth", { attr: { d: MOUTH.rest }, duration: 0.25 });
-                // relax brows
+                tweenMouth(MOUTH.rest, 0.25);
                 gsap.to("#browLeft",  { attr: { d: "M100 46 Q120 31 140 46" }, duration: 0.4 });
                 gsap.to("#browRight", { attr: { d: "M220 46 Q240 31 260 46" }, duration: 0.4 });
                 idleKilledRef.current = false;
@@ -124,26 +177,22 @@ export default function App() {
 
         let cursor = 0.05;
         for (const ch of text) {
-            const shape = MOUTH[charToPhon(ch)];
-            tl.to("#mouth", { attr: { d: shape }, duration: BLEND, ease: "power1.inOut" }, cursor);
+            const params = MOUTH[charToPhon(ch)];
+            tl.call(() => tweenMouth(params, BLEND, "power1.inOut"), [], cursor);
             cursor += PER_CHAR;
             if (ch !== " ") {
-                tl.to("#mouth", { attr: { d: MOUTH.rest }, duration: BLEND * 0.88, ease: "power1.in" }, cursor - BLEND * 0.45);
+                const restParams = MOUTH.rest;
+                tl.call(() => tweenMouth(restParams, BLEND * 0.88, "power1.in"), [], cursor - BLEND * 0.45);
             }
         }
-    }, [killIdle]);
+    }, [killIdle, tweenMouth]);
 
+    // ---- Manual controls ----
     const handleNeutral = useCallback(() => {
         setActiveAnim("neutral");
         if (speakTlRef.current) speakTlRef.current.kill();
         restoreNeutral();
     }, [restoreNeutral]);
-
-    const handleSpeak = useCallback(() => {
-        setActiveAnim("speak");
-        restoreNeutral(true);
-        gsap.delayedCall(0.04, () => playSpeak(speakText));
-    }, [restoreNeutral, playSpeak, speakText]);
 
     const handleSurprised = useCallback(() => {
         setActiveAnim("surprised");
@@ -152,6 +201,157 @@ export default function App() {
         gsap.delayedCall(0.04, playSurprised);
     }, [restoreNeutral, playSurprised]);
 
+    // ---- Speak handlers (manual + WebSocket) ----
+    const handleSpeakWithText = useCallback((text: string) => {
+        if (!text.trim()) return;
+        setActiveAnim("speak");
+        killIdle();
+        restoreNeutral(true);
+        setSpeakText(text);
+        gsap.delayedCall(0.04, () => playSpeak(text));
+    }, [restoreNeutral, playSpeak, killIdle]);
+
+    const handleSpeak = useCallback(() => {
+        handleSpeakWithText(speakText);
+    }, [handleSpeakWithText, speakText]);
+
+    // ---- WebSocket: emotion & state animation handlers ----
+    const playBeepAnimation = useCallback(() => {
+        killIdle();
+        gsap.timeline()
+            .to("#screenGroup", { opacity: 0.6, duration: 0.05 })
+            .to("#screenGroup", { opacity: 1,   duration: 0.05 })
+            .to("#pupilLeft",  { attr: { ry: 26 }, duration: 0.1 })
+            .to("#pupilRight", { attr: { ry: 26 }, duration: 0.1 }, "<")
+            .to("#pupilLeft",  { attr: { ry: 18 }, duration: 0.15 })
+            .to("#pupilRight", { attr: { ry: 18 }, duration: 0.15 }, "<")
+            .to({}, { duration: 0.1 })
+            .then(() => { idleKilledRef.current = false; });
+    }, [killIdle]);
+
+    const handleEmotion = useCallback((emotion: string) => {
+        switch (emotion) {
+            case "surprised":
+                playSurprised();
+                break;
+            case "sleepy":
+                gsap.to(["#pupilLeft", "#pupilRight"], {
+                    attr: { ry: 2 },
+                    duration: 0.8,
+                    ease: "power2.inOut",
+                });
+                break;
+            case "confused":
+                gsap.to(["#pupilLeft", "#pupilRight"], {
+                    attr: { ry: 10, rx: 8 },
+                    duration: 0.3,
+                });
+                break;
+            case "happy":
+                gsap.to(["#pupilLeft", "#pupilRight"], {
+                    attr: { ry: 22, rx: 14 },
+                    duration: 0.3,
+                });
+                tweenMouth(MOUTH.ah, 0.3);
+                break;
+            case "idle":
+            default:
+                restoreNeutral();
+                break;
+        }
+    }, [playSurprised, restoreNeutral, tweenMouth]);
+
+    const handleStateChange = useCallback((state: string) => {
+        switch (state) {
+            case "listening":
+                gsap.to(["#pupilLeft", "#pupilRight"], {
+                    attr: { ry: 18, rx: 12 },
+                    duration: 0.3,
+                });
+                break;
+            case "recording":
+                gsap.to(["#pupilLeft", "#pupilRight"], {
+                    attr: { ry: 20, rx: 13 },
+                    duration: 0.2,
+                });
+                break;
+            case "processing":
+                gsap.to(["#pupilLeft", "#pupilRight"], {
+                    attr: { ry: 14, rx: 10 },
+                    duration: 0.3,
+                });
+                break;
+            case "sleeping":
+                gsap.to(["#pupilLeft", "#pupilRight"], {
+                    attr: { ry: 1 },
+                    duration: 0.6,
+                });
+                break;
+        }
+    }, []);
+
+    // ---- WebSocket message dispatcher ----
+    const handleBotMessage = useCallback((data: BotMessage) => {
+        switch (data.type) {
+            case "speak":
+                if (data.text) handleSpeakWithText(data.text);
+                break;
+            case "beep":
+                playBeepAnimation();
+                break;
+            case "emotion":
+                if (data.emotion) handleEmotion(data.emotion);
+                break;
+            case "state":
+                if (data.state) {
+                    setBotState(data.state);
+                    handleStateChange(data.state);
+                }
+                break;
+        }
+    }, [handleSpeakWithText, playBeepAnimation, handleEmotion, handleStateChange]);
+
+    // Keep ref pointing at the latest version so the WS onmessage never captures a stale closure
+    useEffect(() => { handleBotMessageRef.current = handleBotMessage; }, [handleBotMessage]);
+
+    // ---- WebSocket connection (runs once — uses ref to avoid stale closure) ----
+    useEffect(() => {
+        const connectWebSocket = () => {
+            const wsUrl = (import.meta as any).env?.VITE_WS_URL || "ws://localhost:8765";
+            const ws = new WebSocket(wsUrl);
+            wsRef.current = ws;
+
+            ws.onopen = () => {
+                console.log("🎭 Connected to BurdenBot");
+                setConnected(true);
+            };
+
+            ws.onmessage = (event) => {
+                try {
+                    const data: BotMessage = JSON.parse(event.data);
+                    // Call via ref — always uses the latest handler, never a stale closure
+                    handleBotMessageRef.current(data);
+                } catch (e) {
+                    console.error("Invalid message from bot:", e);
+                }
+            };
+
+            ws.onclose = () => {
+                console.log("Disconnected, reconnecting...");
+                setConnected(false);
+                setTimeout(connectWebSocket, 2000);
+            };
+
+            ws.onerror = (error) => {
+                console.error("WebSocket error:", error);
+            };
+        };
+
+        connectWebSocket();
+        return () => { wsRef.current?.close(); };
+    }, []); // empty — socket created once; fresh handlers reached via ref
+
+    // ---- Idle animations ----
     useEffect(() => {
         document.body.style.margin = "0";
         document.body.style.padding = "0";
@@ -210,19 +410,18 @@ export default function App() {
         gsap.delayedCall(3, twitch);
     }, []);
 
+    // ---- Layout constants ----
     const BTN_W = 72;
     const BTN_G = 6;
-    const B_NEUTRAL  = 10;
+    const B_NEUTRAL   = 10;
     const B_SURPRISED = 400 - 10 - BTN_W;
-    const B_SPEAK = B_SURPRISED - BTN_G - BTN_W;
-    const INPUT_X = B_NEUTRAL + BTN_W + BTN_G;
-    const INPUT_W = B_SPEAK - BTN_G - INPUT_X;
+    const B_SPEAK     = B_SURPRISED - BTN_G - BTN_W;
+    const INPUT_X     = B_NEUTRAL + BTN_W + BTN_G;
+    const INPUT_W     = B_SPEAK - BTN_G - INPUT_X;
 
-    const panelOfsX = RAIL_W + GAP;
-    const toContainerX = (svgX: number) =>
-        ((panelOfsX + svgX * SVG_SCALE) / TOTAL_W) * 100;
-    const toContainerY = (svgY: number) =>
-        ((SVG_TOP + svgY * SVG_SCALE) / TOTAL_H) * 100;
+    const panelOfsX   = RAIL_W + GAP;
+    const toContainerX = (svgX: number) => ((panelOfsX + svgX * SVG_SCALE) / TOTAL_W) * 100;
+    const toContainerY = (svgY: number) => ((SVG_TOP + svgY * SVG_SCALE) / TOTAL_H) * 100;
     const toContainerW = (svgW: number) => (svgW * SVG_SCALE / TOTAL_W) * 100;
     const toContainerH = (svgH: number) => (svgH * SVG_SCALE / TOTAL_H) * 100;
 
@@ -232,6 +431,42 @@ export default function App() {
             width: "100%", height: "100%", background: "#111", overflow: "hidden",
             margin: 0, padding: 0, boxSizing: "border-box", position: "fixed", inset: 0,
         }}>
+            {/* ---- Connection indicator ---- */}
+            <div style={{
+                position: "absolute",
+                top: "4px",
+                right: "8px",
+                display: "flex",
+                alignItems: "center",
+                gap: "4px",
+                zIndex: 20,
+            }}>
+                <div style={{
+                    width: "6px",
+                    height: "6px",
+                    borderRadius: "50%",
+                    background: connected ? "#4ade80" : "#ef4444",
+                    boxShadow: connected ? "0 0 4px #4ade80" : "0 0 2px #ef4444",
+                }} />
+                <span style={{
+                    color: connected ? "#4ade80" : "#ef4444",
+                    fontSize: "8px",
+                    fontFamily: "monospace",
+                }}>
+                    {connected ? "LINK" : "NO LINK"}
+                </span>
+                {botState && (
+                    <span style={{
+                        color: "#5fecd8",
+                        fontSize: "8px",
+                        fontFamily: "monospace",
+                        marginLeft: "8px",
+                    }}>
+                        {botState.toUpperCase()}
+                    </span>
+                )}
+            </div>
+
             <div style={{
                 position: "relative",
                 aspectRatio: `${TOTAL_W} / ${TOTAL_H}`,
@@ -239,6 +474,7 @@ export default function App() {
                 maxWidth: `min(100vw, calc(100vh * ${TOTAL_W / TOTAL_H}))`,
                 maxHeight: "100vh",
             }}>
+                {/* ---- Text input overlay ---- */}
                 <div style={{
                     position: "absolute",
                     left:   `${toContainerX(INPUT_X)}%`,
@@ -271,6 +507,7 @@ export default function App() {
                     />
                 </div>
 
+                {/* ---- SVG face ---- */}
                 <svg
                     ref={svgRef}
                     viewBox={`0 0 ${TOTAL_W} ${TOTAL_H}`}
@@ -341,14 +578,11 @@ export default function App() {
                             <rect x="20" y="24" width="360" height="185" rx="18" fill="#91e6d2" />
                             <g transform="translate(20,12)" clipPath="url(#screenClip)">
                                 <g id="faceGroup" filter="url(#chromaFace)">
-
                                     <path id="browLeft"  d="M100 46 Q120 31 140 46" stroke="#222" strokeWidth="2" fill="none" strokeLinecap="round" />
                                     <path id="browRight" d="M220 46 Q240 31 260 46" stroke="#222" strokeWidth="2" fill="none" strokeLinecap="round" />
-
                                     <ellipse id="pupilLeft"  cx="120" cy="96" rx="12" ry="18" fill="#222" />
                                     <ellipse id="pupilRight" cx="240" cy="96" rx="12" ry="18" fill="#222" />
-
-                                    <path id="mouth" d={MOUTH.rest} fill="#222" />
+                                    <path id="mouth" d={mouthPath(MOUTH.rest)} fill="#222" />
                                 </g>
                             </g>
                             <rect x="20" y="24" width="360" height="185" rx="18" fill="url(#scanlines)" style={{ pointerEvents: "none" }} />
